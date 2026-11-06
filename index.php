@@ -26,7 +26,7 @@ if (!is_file($archivoControlador)) {
 require_once $archivoControlador;
 
 $claseControlador = $controladores[$nombreControlador];
-$metodosPermitidos = ['index', 'detalle'];
+$metodosPermitidos = ['index', 'detalle', 'reservas'];
 
 if (!in_array($accion, $metodosPermitidos, true) || !method_exists($claseControlador, $accion)) {
     http_response_code(404);

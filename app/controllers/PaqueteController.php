@@ -19,6 +19,12 @@ class PaqueteController
         require __DIR__ . '/../views/paquetes/index.php';
     }
 
+    public function reservas(): void
+    {
+        $reservas = $this->modelo->getReservas();
+        require __DIR__ . '/../views/paquetes/reservas.php';
+    }
+
     public function detalle(): void
     {
         if (session_status() !== PHP_SESSION_ACTIVE) {

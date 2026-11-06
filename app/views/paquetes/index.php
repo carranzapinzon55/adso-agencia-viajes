@@ -29,6 +29,9 @@ $escapar = static fn (mixed $valor): string => htmlspecialchars(
                     <li class="nav-item">
                         <a class="nav-link active" aria-current="page" href="index.php?c=paquete&a=index">Paquetes</a>
                     </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="index.php?c=paquete&a=reservas">Reservas Realizadas</a>
+                    </li>
                 </ul>
             </div>
         </div>

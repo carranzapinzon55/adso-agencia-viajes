@@ -62,6 +62,28 @@ class Paquete
         return $paquete === false ? null : $paquete;
     }
 
+    public function getReservas(): array
+    {
+        $consulta = '
+            SELECT
+                r.id AS id_reserva,
+                u.nombre AS nombre_cliente,
+                p.titulo AS titulo_paquete,
+                r.fecha_viaje,
+                r.cantidad_personas,
+                r.total,
+                r.estado
+            FROM reserva AS r
+            INNER JOIN usuario AS u ON u.id = r.usuario_id
+            INNER JOIN paquete AS p ON p.id = r.paquete_id
+            ORDER BY r.fecha_viaje DESC
+        ';
+
+        $sentencia = $this->conexion->query($consulta);
+
+        return $sentencia->fetchAll();
+    }
+
     public function crearReserva(
         int $paqueteId,
         string $fechaViaje,

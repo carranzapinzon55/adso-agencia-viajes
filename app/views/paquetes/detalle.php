@@ -20,7 +20,10 @@ $escapar = static fn (mixed $valor): string => htmlspecialchars(
     <nav class="navbar navbar-expand-lg navbar-dark bg-primary shadow-sm">
         <div class="container">
             <a class="navbar-brand fw-bold" href="index.php">Agencia de Viajes</a>
-            <a class="btn btn-outline-light btn-sm" href="index.php?c=paquete&a=index">Ver paquetes</a>
+            <div class="d-flex flex-wrap gap-2">
+                <a class="btn btn-outline-light btn-sm" href="index.php?c=paquete&a=index">Paquetes</a>
+                <a class="btn btn-outline-light btn-sm" href="index.php?c=paquete&a=reservas">Reservas Realizadas</a>
+            </div>
         </div>
     </nav>
 
