@@ -90,33 +90,76 @@ class Paquete
         int $cantidadPersonas,
         int $usuarioId = 1
     ): bool {
-        $consulta = '
-            INSERT INTO reserva (
-                usuario_id,
-                paquete_id,
-                fecha_viaje,
-                cantidad_personas,
-                total
-            )
-            SELECT
-                :usuario_id,
-                p.id,
-                :fecha_viaje,
-                :cantidad_personas,
-                d.precio_base * :cantidad_personas_total
-            FROM paquete AS p
-            INNER JOIN destino AS d ON d.id = p.destino_id
-            WHERE p.id = :paquete_id
-        ';
+        $this->conexion->beginTransaction();
 
-        $sentencia = $this->conexion->prepare($consulta);
-        $sentencia->bindValue(':usuario_id', $usuarioId, PDO::PARAM_INT);
-        $sentencia->bindValue(':fecha_viaje', $fechaViaje);
-        $sentencia->bindValue(':cantidad_personas', $cantidadPersonas, PDO::PARAM_INT);
-        $sentencia->bindValue(':cantidad_personas_total', $cantidadPersonas, PDO::PARAM_INT);
-        $sentencia->bindValue(':paquete_id', $paqueteId, PDO::PARAM_INT);
-        $sentencia->execute();
+        try {
+            $verificarUsuario = $this->conexion->prepare(
+                'SELECT id FROM usuario WHERE id = :usuario_id LIMIT 1'
+            );
+            $verificarUsuario->bindValue(':usuario_id', $usuarioId, PDO::PARAM_INT);
+            $verificarUsuario->execute();
 
-        return $sentencia->rowCount() === 1;
+            if ($verificarUsuario->fetchColumn() === false) {
+                $crearUsuario = $this->conexion->prepare(
+                    'INSERT INTO usuario (id, nombre, correo, password, rol)
+                     VALUES (:id, :nombre, :correo, :password, :rol)'
+                );
+                $crearUsuario->bindValue(':id', $usuarioId, PDO::PARAM_INT);
+                $crearUsuario->bindValue(':nombre', 'Cliente de reservas');
+                $crearUsuario->bindValue(
+                    ':correo',
+                    'cliente-reservas-' . bin2hex(random_bytes(8)) . '@agencia-viajes.local'
+                );
+                $crearUsuario->bindValue(
+                    ':password',
+                    password_hash(bin2hex(random_bytes(32)), PASSWORD_DEFAULT)
+                );
+                $crearUsuario->bindValue(':rol', 'Cliente');
+                $crearUsuario->execute();
+            }
+
+            $consulta = '
+                INSERT INTO reserva (
+                    usuario_id,
+                    paquete_id,
+                    fecha_viaje,
+                    cantidad_personas,
+                    total
+                )
+                SELECT
+                    :usuario_id,
+                    p.id,
+                    :fecha_viaje,
+                    :cantidad_personas,
+                    d.precio_base * :cantidad_personas_total
+                FROM paquete AS p
+                INNER JOIN destino AS d ON d.id = p.destino_id
+                WHERE p.id = :paquete_id
+            ';
+
+            $sentencia = $this->conexion->prepare($consulta);
+            $sentencia->bindValue(':usuario_id', $usuarioId, PDO::PARAM_INT);
+            $sentencia->bindValue(':fecha_viaje', $fechaViaje);
+            $sentencia->bindValue(':cantidad_personas', $cantidadPersonas, PDO::PARAM_INT);
+            $sentencia->bindValue(':cantidad_personas_total', $cantidadPersonas, PDO::PARAM_INT);
+            $sentencia->bindValue(':paquete_id', $paqueteId, PDO::PARAM_INT);
+            $sentencia->execute();
+
+            $reservaCreada = $sentencia->rowCount() === 1;
+            if (!$reservaCreada) {
+                $this->conexion->rollBack();
+                return false;
+            }
+
+            $this->conexion->commit();
+
+            return true;
+        } catch (Throwable $error) {
+            if ($this->conexion->inTransaction()) {
+                $this->conexion->rollBack();
+            }
+
+            throw $error;
+        }
     }
 }
