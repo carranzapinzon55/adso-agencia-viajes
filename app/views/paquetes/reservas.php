@@ -245,6 +245,18 @@ $escapar = static fn (mixed $valor): string => htmlspecialchars(
                     <li class="nav-item">
                         <a class="nav-link active" aria-current="page" href="index.php?c=paquete&a=reservas"><i class="bi bi-journal-check me-1"></i>Reservas Realizadas</a>
                     </li>
+                    <?php if (isset($_SESSION['usuario'])): ?>
+                        <li class="nav-item">
+                            <span class="nav-link"><i class="bi bi-person-circle me-1"></i><?= $escapar($_SESSION['usuario']['nombre']) ?></span>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="index.php?c=paquete&a=logout"><i class="bi bi-box-arrow-right me-1"></i>Cerrar Sesión</a>
+                        </li>
+                    <?php else: ?>
+                        <li class="nav-item">
+                            <a class="nav-link" href="index.php?c=paquete&a=login"><i class="bi bi-box-arrow-in-right me-1"></i>Iniciar Sesión</a>
+                        </li>
+                    <?php endif; ?>
                 </ul>
             </div>
         </div>
@@ -269,6 +281,13 @@ $escapar = static fn (mixed $valor): string => htmlspecialchars(
             </a>
         </div>
 
+        <?php if (isset($mensajeReservas) && is_array($mensajeReservas)): ?>
+            <div class="alert alert-<?= $escapar($mensajeReservas['tipo']) ?> alert-dismissible fade show border-0 shadow-sm rounded-4" role="alert">
+                <?= $escapar($mensajeReservas['texto']) ?>
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Cerrar"></button>
+            </div>
+        <?php endif; ?>
+
         <section class="reservations-card" aria-label="Listado de reservas">
             <?php if ($reservas === []): ?>
                 <div class="empty-state">
@@ -289,6 +308,7 @@ $escapar = static fn (mixed $valor): string => htmlspecialchars(
                                 <th scope="col">Personas</th>
                                 <th scope="col">Total</th>
                                 <th scope="col">Estado</th>
+                                <th scope="col">Acciones</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -312,6 +332,23 @@ $escapar = static fn (mixed $valor): string => htmlspecialchars(
                                         <span class="status-badge <?= $claseEstado ?>">
                                             <i class="bi <?= $iconoEstado ?>"></i><?= $escapar($reserva['estado']) ?>
                                         </span>
+                                    </td>
+                                    <td>
+                                        <div class="d-flex flex-wrap gap-2">
+                                            <?php if ($reserva['estado'] !== 'Cancelada'): ?>
+                                                <a
+                                                    class="btn btn-sm btn-outline-warning rounded-pill"
+                                                    href="index.php?c=paquete&amp;a=cancelar&amp;id=<?= (int) $reserva['id_reserva'] ?>"
+                                                    onclick="return confirm('¿Deseas cancelar esta reserva?');"
+                                                ><i class="bi bi-x-circle me-1"></i>Cancelar</a>
+                                            <?php endif; ?>
+                                            <a
+                                                class="btn btn-sm btn-outline-danger rounded-pill"
+                                                href="index.php?c=paquete&amp;a=eliminar&amp;id=<?= (int) $reserva['id_reserva'] ?>"
+                                                onclick="return confirm('¿Deseas eliminar esta reserva permanentemente?');"
+                                                aria-label="Eliminar reserva #<?= (int) $reserva['id_reserva'] ?>"
+                                            ><i class="bi bi-trash"></i></a>
+                                        </div>
                                     </td>
                                 </tr>
                             <?php endforeach; ?>

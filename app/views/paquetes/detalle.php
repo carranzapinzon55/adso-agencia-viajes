@@ -228,6 +228,18 @@ $imagenDetalle = $paquete !== null
                     <li class="nav-item">
                         <a class="nav-link" href="index.php?c=paquete&a=reservas"><i class="bi bi-journal-check me-1"></i>Reservas Realizadas</a>
                     </li>
+                    <?php if (isset($_SESSION['usuario'])): ?>
+                        <li class="nav-item">
+                            <span class="nav-link"><i class="bi bi-person-circle me-1"></i><?= $escapar($_SESSION['usuario']['nombre']) ?></span>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="index.php?c=paquete&a=logout"><i class="bi bi-box-arrow-right me-1"></i>Cerrar Sesión</a>
+                        </li>
+                    <?php else: ?>
+                        <li class="nav-item">
+                            <a class="nav-link" href="index.php?c=paquete&a=login"><i class="bi bi-box-arrow-in-right me-1"></i>Iniciar Sesión</a>
+                        </li>
+                    <?php endif; ?>
                 </ul>
             </div>
         </div>
@@ -288,34 +300,50 @@ $imagenDetalle = $paquete !== null
                             <span class="fw-semibold text-secondary"> COP</span>
                         </div>
 
-                        <form method="post" action="index.php?c=paquete&amp;a=detalle&amp;id=<?= (int) $paquete['id'] ?>">
+                        <?php if (isset($_SESSION['usuario']) && !empty($_SESSION['usuario']['id'])): ?>
                             <div class="mb-3">
-                                <label for="fecha_viaje" class="form-label"><i class="bi bi-calendar-event me-2 text-success"></i>Fecha del viaje</label>
-                                <input
-                                    type="date"
-                                    class="form-control"
-                                    id="fecha_viaje"
-                                    name="fecha_viaje"
-                                    min="<?= date('Y-m-d') ?>"
-                                    required
-                                >
+                                <span class="badge rounded-pill px-3 py-2" style="color: #176b71; background: #e5f7f3;">
+                                    <i class="bi bi-person-circle me-1"></i>
+                                    Reservando como <?= $escapar($_SESSION['usuario']['nombre']) ?>
+                                </span>
                             </div>
-                            <div class="mb-4">
-                                <label for="cantidad_personas" class="form-label"><i class="bi bi-people me-2 text-success"></i>Cantidad de personas</label>
-                                <input
-                                    type="number"
-                                    class="form-control"
-                                    id="cantidad_personas"
-                                    name="cantidad_personas"
-                                    min="1"
-                                    value="1"
-                                    required
-                                >
+                            <form method="post" action="index.php?c=paquete&amp;a=detalle&amp;id=<?= (int) $paquete['id'] ?>">
+                                <div class="mb-3">
+                                    <label for="fecha_viaje" class="form-label"><i class="bi bi-calendar-event me-2 text-success"></i>Fecha del viaje</label>
+                                    <input
+                                        type="date"
+                                        class="form-control"
+                                        id="fecha_viaje"
+                                        name="fecha_viaje"
+                                        min="<?= date('Y-m-d') ?>"
+                                        required
+                                    >
+                                </div>
+                                <div class="mb-4">
+                                    <label for="cantidad_personas" class="form-label"><i class="bi bi-people me-2 text-success"></i>Cantidad de personas</label>
+                                    <input
+                                        type="number"
+                                        class="form-control"
+                                        id="cantidad_personas"
+                                        name="cantidad_personas"
+                                        min="1"
+                                        value="1"
+                                        required
+                                    >
+                                </div>
+                                <button type="submit" class="btn btn-gradient btn-lg rounded-pill w-100">
+                                    Confirmar Reserva <i class="bi bi-arrow-right-circle ms-2"></i>
+                                </button>
+                            </form>
+                        <?php else: ?>
+                            <div class="alert alert-info rounded-4 border-0 mb-0" role="status">
+                                <p class="fw-semibold mb-3"><i class="bi bi-info-circle-fill me-2"></i>Inicia sesión para reservar este paquete.</p>
+                                <a
+                                    class="btn btn-gradient rounded-pill w-100"
+                                    href="index.php?c=paquete&amp;a=login&amp;mensaje=debes_iniciar_sesion"
+                                >Iniciar Sesión <i class="bi bi-box-arrow-in-right ms-2"></i></a>
                             </div>
-                            <button type="submit" class="btn btn-gradient btn-lg rounded-pill w-100">
-                                Confirmar Reserva <i class="bi bi-arrow-right-circle ms-2"></i>
-                            </button>
-                        </form>
+                        <?php endif; ?>
 
                         <a class="btn btn-soft rounded-pill w-100 mt-3" href="index.php?c=paquete&a=index">
                             <i class="bi bi-arrow-left me-2"></i>Volver al catálogo

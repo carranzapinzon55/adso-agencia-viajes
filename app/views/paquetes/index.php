@@ -282,6 +282,18 @@ $imagenesPaquetes = [
                             <i class="bi bi-journal-check me-1"></i> Reservas Realizadas
                         </a>
                     </li>
+                    <?php if (isset($_SESSION['usuario'])): ?>
+                        <li class="nav-item">
+                            <span class="nav-link"><i class="bi bi-person-circle me-1"></i><?= $escapar($_SESSION['usuario']['nombre']) ?></span>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="index.php?c=paquete&a=logout"><i class="bi bi-box-arrow-right me-1"></i>Cerrar Sesión</a>
+                        </li>
+                    <?php else: ?>
+                        <li class="nav-item">
+                            <a class="nav-link" href="index.php?c=paquete&a=login"><i class="bi bi-box-arrow-in-right me-1"></i>Iniciar Sesión</a>
+                        </li>
+                    <?php endif; ?>
                 </ul>
             </div>
         </div>

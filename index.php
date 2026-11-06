@@ -2,6 +2,10 @@
 
 declare(strict_types=1);
 
+if (session_status() !== PHP_SESSION_ACTIVE) {
+    session_start();
+}
+
 require_once __DIR__ . '/app/config/Database.php';
 
 $controladores = [
@@ -26,7 +30,7 @@ if (!is_file($archivoControlador)) {
 require_once $archivoControlador;
 
 $claseControlador = $controladores[$nombreControlador];
-$metodosPermitidos = ['index', 'detalle', 'reservas'];
+$metodosPermitidos = ['index', 'detalle', 'reservas', 'cancelar', 'eliminar', 'login', 'logout'];
 
 if (!in_array($accion, $metodosPermitidos, true) || !method_exists($claseControlador, $accion)) {
     http_response_code(404);

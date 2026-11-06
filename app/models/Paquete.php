@@ -84,40 +84,80 @@ class Paquete
         return $sentencia->fetchAll();
     }
 
+    public function autenticarUsuario(string $correo, string $password): ?array
+    {
+        $sentencia = $this->conexion->prepare(
+            'SELECT id, nombre, correo, password, rol
+             FROM usuario
+             WHERE correo = :correo
+             LIMIT 1'
+        );
+        $sentencia->bindValue(':correo', $correo);
+        $sentencia->execute();
+
+        $usuario = $sentencia->fetch();
+        if ($usuario === false) {
+            return null;
+        }
+
+        $informacionHash = password_get_info((string) $usuario['password']);
+        $esHash = $informacionHash['algo'] !== null;
+        $passwordValido = $esHash
+            ? password_verify($password, (string) $usuario['password'])
+            : hash_equals((string) $usuario['password'], $password);
+
+        if (!$passwordValido) {
+            return null;
+        }
+
+        if (!$esHash) {
+            $actualizarPassword = $this->conexion->prepare(
+                'UPDATE usuario SET password = :password WHERE id = :id'
+            );
+            $actualizarPassword->bindValue(':password', password_hash($password, PASSWORD_DEFAULT));
+            $actualizarPassword->bindValue(':id', (int) $usuario['id'], PDO::PARAM_INT);
+            $actualizarPassword->execute();
+        }
+
+        return [
+            'id' => (int) $usuario['id'],
+            'nombre' => (string) $usuario['nombre'],
+            'correo' => (string) $usuario['correo'],
+            'rol' => (string) $usuario['rol'],
+        ];
+    }
+
+    public function cancelarReserva(int $id): bool
+    {
+        $sentencia = $this->conexion->prepare(
+            "UPDATE reserva SET estado = 'Cancelada' WHERE id = :id"
+        );
+        $sentencia->bindValue(':id', $id, PDO::PARAM_INT);
+        $sentencia->execute();
+
+        return $sentencia->rowCount() > 0;
+    }
+
+    public function eliminarReserva(int $id): bool
+    {
+        $sentencia = $this->conexion->prepare(
+            'DELETE FROM reserva WHERE id = :id'
+        );
+        $sentencia->bindValue(':id', $id, PDO::PARAM_INT);
+        $sentencia->execute();
+
+        return $sentencia->rowCount() > 0;
+    }
+
     public function crearReserva(
         int $paqueteId,
         string $fechaViaje,
         int $cantidadPersonas,
-        int $usuarioId = 1
+        int $usuarioId
     ): bool {
         $this->conexion->beginTransaction();
 
         try {
-            $verificarUsuario = $this->conexion->prepare(
-                'SELECT id FROM usuario WHERE id = :usuario_id LIMIT 1'
-            );
-            $verificarUsuario->bindValue(':usuario_id', $usuarioId, PDO::PARAM_INT);
-            $verificarUsuario->execute();
-
-            if ($verificarUsuario->fetchColumn() === false) {
-                $crearUsuario = $this->conexion->prepare(
-                    'INSERT INTO usuario (id, nombre, correo, password, rol)
-                     VALUES (:id, :nombre, :correo, :password, :rol)'
-                );
-                $crearUsuario->bindValue(':id', $usuarioId, PDO::PARAM_INT);
-                $crearUsuario->bindValue(':nombre', 'Cliente de reservas');
-                $crearUsuario->bindValue(
-                    ':correo',
-                    'cliente-reservas-' . bin2hex(random_bytes(8)) . '@agencia-viajes.local'
-                );
-                $crearUsuario->bindValue(
-                    ':password',
-                    password_hash(bin2hex(random_bytes(32)), PASSWORD_DEFAULT)
-                );
-                $crearUsuario->bindValue(':rol', 'Cliente');
-                $crearUsuario->execute();
-            }
-
             $consulta = '
                 INSERT INTO reserva (
                     usuario_id,
